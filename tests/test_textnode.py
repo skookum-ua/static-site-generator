@@ -1,5 +1,5 @@
 import unittest
-from textnode import TextNode, Inline
+from src.textnode import TextNode, Inline
 
 class TestTextNode(unittest.TestCase):
     def test_eq(self):
