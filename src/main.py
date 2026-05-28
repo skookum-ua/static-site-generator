@@ -3,11 +3,15 @@ from htmlnode import HTMLNode, LeafNode, ParentNode
 import re
 import os
 import shutil
+import sys
 
 def main():
-
-    copy_files_to_public("static", "public")
-    generate_pages_recursive("content", "template.html", "public")
+    if sys.argv[1]:
+        basepath = sys.argv[1]
+    else:
+        basepath = "/"
+    copy_files_to_public("static", "docs")
+    generate_pages_recursive("content", "template.html", "docs", basepath)
 
 def text_node_to_html_node(text_node):
     if text_node.text_type == Inline.TEXT:
@@ -277,7 +281,7 @@ def extract_title(markdown):
     else:
         raise Exception("Title not found")
     
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     with open(from_path) as f:
             markdown = f.read()
@@ -289,6 +293,8 @@ def generate_page(from_path, template_path, dest_path):
     title = extract_title(markdown)
     template = template.replace("{{ Title }}", title)
     template = template.replace("{{ Content }}", html)
+    template = template.replace('src="/', f'src="{basepath}')
+    template = template.replace('href="/', f'href="{basepath}')
     dir_name = os.path.dirname(dest_path)
     if dir_name:
         os.makedirs(dir_name, exist_ok=True)
@@ -304,7 +310,7 @@ def folder_crawler(dir):
             file_path_list.extend(folder_crawler(os.path.join(dir, i)))
     return file_path_list
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     files = folder_crawler(dir_path_content)
     for i in files:
 
@@ -312,7 +318,7 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
         htlm_relativ_path = os.path.splitext(relativ_path)[0] + ".html"
         dest_path = os.path.join(dest_dir_path, htlm_relativ_path)
 
-        generate_page(i, template_path, dest_path)
+        generate_page(i, template_path, dest_path, basepath)
     
     
 
